@@ -49,12 +49,13 @@ Before you begin, ensure you have met the following requirements:
 
 Clone the repository:
 
-`git clone https://github.com/yourusername/flashcard-saas.git cd flashcard-saas npm  install  npm run dev`
-
-
-### Usage
-
-`npm start`
+```bash
+git clone https://github.com/Darkboy17/ai_flashcard_generator
+cd flashcard-saas 
+npm  install  
+npm run dev
+npm start
+```
 
 ## User Authentication with Clerk
 
