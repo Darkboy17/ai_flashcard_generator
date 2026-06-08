@@ -1,82 +1,188 @@
-# Flashcard SaaS Application
+# AI Flashcard Generator
 
-Welcome to the Flashcard SaaS Application! This application is designed to generate clear, concise, and effective flashcards on various topics, facilitating efficient learning and memorization. Each flashcard consists of a question on one side and the corresponding answer on the other, tailored to facilitate efficient learning across a wide range of subjects, from academic disciplines to practical skills. Our AI-powered flashcard generator focuses on creating high-quality study aids that are brief, to the point, and tailored to the intended audience's difficulty level. Whether you're studying for exams, preparing for certifications, or simply looking to expand your knowledge, our service is here to assist you in creating the perfect study tool.
+Full-stack flashcard app split into a standalone REST API backend and a Next.js frontend.
 
-## Features
+## Project Layout
 
--   **AI-Powered Generation:**  Leveraging advanced AI models, we generate flashcards that are optimized for learning efficiency.
--   **Wide Range of Subjects:**  Generate flashcards on any subject matter, from academic disciplines to practical skills.
--   **Simple Language:**  Ensures clarity and understanding with straightforward language.
--   **Effective Learning Aid:**  Designed to facilitate efficient memorization and learning.
--   **Consistent Format:**  Maintains a consistent format for similar types of information for easy review.
--   **Secure and Safe:**  Built with safety settings to block harmful content, ensuring a positive learning experience.
--   **User Authentication:**  Powered by Clerk, providing secure and seamless user authentication.
--   **Subscription Plans:**  Offers various subscription plans through Stripe for personalized learning experiences.
-
-## User Authentication with Clerk
-
-Clerk provides seamless user authentication, allowing users to sign up, log in, and manage their accounts securely. With Clerk, we ensure a smooth user experience from the moment they join our platform until they generate their first flashcard.
-
-## Subscription Plans
-
-We offer several subscription plans tailored to fit different learning needs and budgets. Powered by Stripe, we handle payments securely and efficiently, allowing users to choose the plan that best suits them.
-
-### Free Plan
-
--   Access to a limited number of flashcard generations per month.
--   Basic customization options.
-
-### Premium Plan
-
--   Unlimited flashcard generation.
--   Advanced customization options, including difficulty level adjustments and personalized flashcard formats.
--   Priority support.
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live server.
-
-### Prerequisites
-
-Before you begin, ensure you have met the following requirements:
-
--   Node.js installed
--   A Google Cloud project setup for Vertex AI access
--   Basic knowledge of Next.js for frontend modifications
--   Clerk and Stripe accounts configured for user authentication and payments
-
-## Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/Darkboy17/ai_flashcard_generator
-cd flashcard-saas 
-npm  install  
-npm run dev
-npm start
+```text
+backend/    REST API, services, Stripe client, Groq/Gemini AI clients, and utilities
+frontend/   Next.js app that consumes the backend API
 ```
 
-## User Authentication with Clerk
+## Backend Setup
 
-Clerk handles all aspects of user authentication, providing a secure and seamless experience. Users can sign up, log in, and manage their profiles effortlessly.
+```powershell
+cd "D:\Local Disk E\All Software Projects\ai_flashcard_generator\backend"
+npm.cmd install
+Copy-Item .env.example .env.local
+npm.cmd run dev
+```
 
-### Setting up Clerk
+Backend runs on:
 
-1.  Sign up for a Clerk account and obtain your Clerk Secret Key.
-2.  Configure Clerk in your  `.env.local`  file:
+```text
+http://localhost:5000
+```
 
-`CLERK_SECRET_KEY="your_clerk_secret_key_here"`
+Backend API links:
 
-Ensure Clerk is properly integrated into your Next.js application for authentication flows.
+```text
+GET /              Welcome page
+GET /api-docs      Swagger UI
+GET /openapi.json  OpenAPI specification
+GET /health        Health check
+```
 
-## Subscription Management with Stripe
+Backend environment:
 
-Stripe handles subscription payments, offering flexibility in choosing plans that suit users' needs.
+```env
+PORT=5000
+API_LOG_DIR=logs
+LOG_WATCH_EMAIL=opcodegenerator@gmail.com
+CLERK_ISSUER_URL=
+CLERK_JWKS_URL=
+FRONTEND_URL=http://localhost:3000
+CORS_ORIGIN=http://localhost:3000
+STRIPE_SECRET_KEY=
+GROQ_API_KEY=
+GROQ_MODEL=llama-3.3-70b-versatile
+SERVICE_ACCOUNT_KEY_BASE64=
+GOOGLE_CLOUD_PROJECT_ID=flashcard-saas-432607
+GOOGLE_CLOUD_LOCATION=us-central1
+```
 
-### Setting up Stripe
+Flashcard generation uses Groq first when `GROQ_API_KEY` is set. If Groq is missing or returns an error, the backend falls back to Gemini through Vertex AI, which requires `SERVICE_ACCOUNT_KEY_BASE64`.
 
-1.  Sign up for a Stripe account and obtain your API keys.
-2.  Configure Stripe in your environment variables:
+API logs are written as JSON lines. Request summaries go to `backend/logs/api.log`, and failed requests/exceptions go to `backend/logs/errors.log`. When the signed-in user email matches `LOG_WATCH_EMAIL`, log records include `"watchedUser": true`.
 
-`STRIPE_PUBLIC_KEY="your_stripe_public_key_here"  STRIPE_SECRET_KEY="your_stripe_secret_key_here"`
+All `/api/*` REST endpoints require a Clerk bearer token. Set `CLERK_ISSUER_URL` to your Clerk issuer, for example `https://your-instance.clerk.accounts.dev`. `CLERK_JWKS_URL` is optional; when omitted, the backend uses `${CLERK_ISSUER_URL}/.well-known/jwks.json`.
+
+## Frontend Setup
+
+```powershell
+cd "D:\Local Disk E\All Software Projects\ai_flashcard_generator\frontend"
+npm.cmd install
+Copy-Item .env.example .env.local
+npm.cmd run dev
+```
+
+Frontend runs on:
+
+```text
+http://localhost:3000
+```
+
+Frontend environment:
+
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_STRIPE_PUBLIC_KEY=
+```
+
+## API Endpoints
+
+```text
+GET  /
+GET  /api-docs
+GET  /openapi.json
+GET  /health
+POST /api/generate
+POST /api/checkout-sessions
+GET  /api/checkout-sessions?session_id=...
+```
+
+## Development
+
+Run both apps in separate terminals.
+
+Terminal 1:
+
+```powershell
+cd "D:\Local Disk E\All Software Projects\ai_flashcard_generator\backend"
+npm.cmd run dev
+```
+
+Terminal 2:
+
+```powershell
+cd "D:\Local Disk E\All Software Projects\ai_flashcard_generator\frontend"
+npm.cmd run dev
+```
+
+## Production
+
+Deploy the backend and frontend separately.
+
+Backend:
+
+```powershell
+cd backend
+npm.cmd install --omit=dev
+npm.cmd run start
+```
+
+Frontend:
+
+```powershell
+cd frontend
+npm.cmd install
+npm.cmd run build
+npm.cmd run start
+```
+
+Set `NEXT_PUBLIC_API_URL` in the frontend deployment to the deployed backend URL, for example:
+
+```env
+NEXT_PUBLIC_API_URL=https://your-api.example.com/api
+```
+
+Set `FRONTEND_URL` and `CORS_ORIGIN` in the backend deployment to the deployed frontend URL.
+
+## Backend VM Deploy Script
+
+Use `scripts/deploy-backend.ps1` to build, push, SSH into a VM, configure firewall/nginx/certbot, pull the image, and run the backend container. Copy the script into any backend folder and run it from there; by default, it uses the current folder as the Docker build context.
+
+Pass `-LocalEnvFile .env` to upload the backend folder's local env file to the VM. If `-RemoteEnvFile` is omitted, the script installs it at `/opt/<SiteName>/.env` and runs Docker with `--env-file`.
+Pass `-RequiredEnvKeys @("KEY_ONE","KEY_TWO")` when you want the deploy to fail early if the local or remote env file is missing required keys.
+
+Example:
+
+```powershell
+.\scripts\deploy-backend.ps1 `
+  -ImageRepository darkboy18/ai-flashcard-api `
+  -Tag arm64 `
+  -Platform linux/arm64 `
+  -SshHost your-vm-ip-or-host `
+  -SshUser ubuntu `
+  -Domain flashcardapi.example.com `
+  -SiteName flashcardapi `
+  -ContainerName flashcardapi-container `
+  -HostPort 5000 `
+  -ContainerPort 5000 `
+  -LocalEnvFile .env `
+  -RequiredEnvKeys @("GROQ_API_KEY","SECRET_KEY","MONGODB_URI") `
+  -CertbotMode nginx
+```
+
+For a backend like your AI chatbot example:
+
+```powershell
+.\scripts\deploy-backend.ps1 `
+  -ImageRepository darkboy18/ai-chatbot-api `
+  -Tag arm64 `
+  -Platform linux/arm64 `
+  -SshHost your-vm-ip-or-host `
+  -SshUser ubuntu `
+  -Domain aichatbotapi.largent.org `
+  -SiteName aichatbotapi `
+  -ContainerName aichatbotapi-container `
+  -HostPort 4004 `
+  -ContainerPort 3003 `
+  -LocalEnvFile .env `
+  -RequiredEnvKeys @("GROQ_API_KEY","SECRET_KEY","MONGODB_URI") `
+  -CertbotMode nginx
+```
+
+Every normal run rebuilds the local image, pushes the tag, pulls that tag on the VM, removes the old container, and starts a fresh container with the latest image and env file. By default, the container binds to `127.0.0.1` on the VM and nginx proxies to it. To bind the Docker port publicly like `docker run -p 4004:3003`, pass `-BindAddress ""`.
