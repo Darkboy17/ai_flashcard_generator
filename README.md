@@ -111,7 +111,10 @@ Important backend settings:
 - `SERVICE_ACCOUNT_KEY_BASE64` enables the Gemini fallback through Vertex AI. It
   should be a base64-encoded Google service-account JSON file.
 - `FRONTEND_URL` is used for checkout success/cancel redirects.
-- `CORS_ORIGIN` should match the deployed frontend origin in production.
+- `CORS_ORIGIN` should match the deployed frontend origin in production. It can
+  also be a comma-separated allowlist, for example
+  `https://app.example.com,https://app-git-master-team.vercel.app`. The backend
+  will echo only the matching request origin in `Access-Control-Allow-Origin`.
 
 ### Backend Scripts
 
@@ -281,7 +284,13 @@ Production environment reminders:
 
 - Set frontend `NEXT_PUBLIC_API_URL` to the deployed backend API root, such as
   `https://flashcardapi.example.com/api`.
-- Set backend `FRONTEND_URL` and `CORS_ORIGIN` to the deployed frontend origin.
+- Set backend `FRONTEND_URL` to the canonical deployed frontend origin.
+- Set backend `CORS_ORIGIN` to the deployed frontend origin, or to a
+  comma-separated list when you need to allow Vercel production and preview
+  URLs.
+- Use Clerk production keys for deployed environments. Clerk development keys
+  work for local development, but Clerk warns about strict limits and they should
+  not be used on production Vercel deployments.
 - Keep `.env`, `.env.local`, `.env.prod`, service-account files, and private keys
   out of Git.
 

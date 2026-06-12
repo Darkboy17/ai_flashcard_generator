@@ -4,8 +4,7 @@ const DEFAULT_ALLOWED_HEADERS =
 
 export function applyCorsHeaders(req, res) {
   const requestOrigin = req.headers.origin;
-  const allowedOrigin =
-    process.env.CORS_ORIGIN || process.env.FRONTEND_URL || requestOrigin || "*";
+  const allowedOrigin = getAllowedOrigin(requestOrigin);
 
   res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
   res.setHeader("Access-Control-Allow-Methods", DEFAULT_ALLOWED_METHODS);
@@ -52,4 +51,40 @@ export function sendHtml(res, html, status = 200) {
 export function sendError(res, message, status = 500) {
   res.apiErrorMessage = message;
   sendJson(res, { error: { message } }, status);
+}
+
+function getAllowedOrigin(requestOrigin) {
+  const allowedOrigins = getConfiguredOrigins();
+  const normalizedRequestOrigin = normalizeOrigin(requestOrigin);
+
+  if (!normalizedRequestOrigin) {
+    return allowedOrigins[0] || "*";
+  }
+
+  if (allowedOrigins.includes("*")) {
+    return "*";
+  }
+
+  if (allowedOrigins.includes(normalizedRequestOrigin)) {
+    return normalizedRequestOrigin;
+  }
+
+  return allowedOrigins[0] || normalizedRequestOrigin;
+}
+
+function getConfiguredOrigins() {
+  const configuredOrigins = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
+
+  if (!configuredOrigins) {
+    return [];
+  }
+
+  return configuredOrigins
+    .split(",")
+    .map(normalizeOrigin)
+    .filter(Boolean);
+}
+
+function normalizeOrigin(origin) {
+  return typeof origin === "string" ? origin.trim().replace(/\/$/, "") : "";
 }
